@@ -1,7 +1,7 @@
-//Blynk
 #define BLYNK_TEMPLATE_ID "TMPL5YP_yo29m"
 #define BLYNK_TEMPLATE_NAME "TP2NounaLebretonRankovic"
 #define BLYNK_AUTH_TOKEN "x3wFY_9edsvr5b-SYKtpJalhreED_CJv"
+#define BLYNK_PRINT Serial
 
 #include <Arduino.h>
 #include <Adafruit_Sensor.h>
@@ -10,48 +10,42 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 
-
-
 #include <BlynkSimpleEsp32.h>
 
-#define BLYNK_PRINT Serial
-
-// Define the pins that we will use
 #define SENSOR 33
 #define LED 26
 #define DHTTYPE DHT11
 
 DHT_Unified dht(SENSOR, DHTTYPE);
 
-// WiFi credentials go here
-// ...
-// ...
-// ...
-
-// Avant le setup
 char ssid[] = "Suzy";
 char pass[] = "12345!;)";
 
+BLYNK_WRITE(V2)
+{
+  int pinValue = param.asInt(); 
+  Serial.print("Received value from Blynk: ");
+  Serial.println(pinValue);
+  digitalWrite(LED,pinValue);
+  delay(1000);
+}
+
 void setup() {
-  // Setup pins
   pinMode(LED, OUTPUT);
   digitalWrite(LED, LOW);
 
-  // Begin serial communication
   Serial.begin(9600);
   delay(100);
 
-  // begin the Blynk session
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
   Blynk.run();
+  Blynk.syncVirtual(V2);
 
-
-  // Start listening to the DHT11
   dht.begin();
 
   sensors_event_t event;
 
-  // Get temperature event and print its value
+  // Température
   float temp_measure = -999.0;
   dht.temperature().getEvent(&event);
   if (isnan(event.temperature)) {
@@ -63,7 +57,7 @@ void setup() {
     temp_measure = event.temperature;
   }
 
-  // Get humidity event and print its value.
+  // Humidité
   float relative_humidity_measure = -999.0;
   dht.humidity().getEvent(&event);
   if (isnan(event.relative_humidity)) {
@@ -75,7 +69,7 @@ void setup() {
     relative_humidity_measure = event.relative_humidity;
   }
 
-  // Send data to Blynk
+  // Envoi à Blynk
   Blynk.virtualWrite(V1, temp_measure); 
   Blynk.virtualWrite(V0, relative_humidity_measure); 
 
@@ -87,5 +81,4 @@ void setup() {
 }
 
 void loop() {
-  // Not needed anymore, the function is kept so PlatformIO does not complain.
 }
